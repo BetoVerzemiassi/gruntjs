@@ -1,0 +1,24 @@
+{
+  "name": "aprendendogruntjs",
+  "version": "1.0.0",
+  "description": "estudo sobre gruntJS",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BetoVerzemiassi/gruntjs.git"
+  },
+  "author": "Alberto V. Borguesani",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/BetoVerzemiassi/gruntjs/issues"
+  },
+  "homepage": "https://github.com/BetoVerzemiassi/gruntjs#readme",
+  "devDependencies": {
+    "grunt": "^1.0.1",
+    "grunt-contrib-clean": "^1.1.0",
+    "grunt-contrib-copy": "^1.0.0"
+  }
+}
