@@ -372,3 +372,105 @@ Created 4 directories, copied 5 files
 
 Done, without errors.
 ```
+
+# Automatizando merge e minificação com Grunt
+
+* Os plugins envolvidos nestas tarefas são o grunt-contrib-concat, o grunt-contrib-uglify e o grunt-contrib-cssmin. 
+
+* No terminal:
+
+```
+npm install grunt-contrib-concat --save-dev
+npm install grunt-contrib-uglify --save-dev
+npm install grunt-contrib-cssmin --save-dev
+```
+
+* Em Gruntfile.js:
+
+```
+grunt.loadNpmTasks('grunt-contrib-concat');
+grunt.loadNpmTasks('grunt-contrib-uglify');
+grunt.loadNpmTasks('grunt-contrib-cssmin');
+```
+
+* O problema é que seremos responsáveis pela configuração das tasks de cada um deles. Para resolver isso, utilizaremos o **grunt-usemin** para gerar as configurações dos plugins citados.
+
+# grunt-usemin
+
+* O **grunt-usemin** é um plugin que facilita incrivelmente a configuração das tasks envolvidas no processo de merge e minificação. Só precisamos configurar sua task para que ela gere automaticamente os parâmetros de configuração para os três plugins que vimos anteriormente.
+
+* Para instalá-lo, basta executar no terminal o comando:
+
+> npm install grunt-usemin --save-dev
+
+* O **grunt-usemin** funciona da seguinte maneira. Em nossas páginas, envolvemos os blocos de css e de script que desejamos realizar o merge e minficação utilizando um comentário especial. Por exemplo, em nossa página index.html:
+
+```
+<!-- build:css css/index.min.css -->
+<link rel="stylesheet" href="css/base.css">    
+<link rel="stylesheet" href="css/index.css">    
+<!-- endbuild -->
+
+<!-- build:js js/index.min.js -->
+<script src="js/index.js"></script>
+<!-- endbuild -->
+```
+
+* É necessário registrar o grunt-usemin no Gruntfile.js e configurar duas tasks distintas.
+
+* A primeira **useminPrepare** gerará configurações dinâmicas para **grunt-contrib-concat**, **grunt-contrib-uglify**, **grunt-contrib-cssmin**. O primeiro plugin concatenará os arquivos e os dois últimos "minificarão" JavaScript e CSS respectivamente.
+
+* A segunda task **usemin** alterará nossos arquivos HTML fazendo com que eles apontem para os arquivos concatenados e minificados definidos nos comentários especiais, pois foram criados antes pela task **useminPrepare.**
+
+* Não se preocupe, as duas tasks são tão simples quanto as que vimos anteriormente:
+
+* No Gruntfile.js:
+
+```
+module.exports = function(grunt) {
+
+   grunt.initConfig({
+      /* Copia os arquivos para o diretório 'dist' */
+      copy: {
+         public: {
+           expand: true,
+           cwd: 'public',
+           src: '**',
+           dest: 'dist'
+         }
+     },
+
+     clean: {
+          dist: {
+              src: 'dist'
+          }
+     },
+
+     useminPrepare: {
+       html: 'dist/**/*.html'
+     },
+
+     usemin: {
+       html: 'dist/**/*.html'
+     }
+  });
+
+
+  //registrando task para minificação
+
+  grunt.registerTask('dist', ['clean', 'copy']);
+
+  grunt.registerTask('minifica', ['useminPrepare','concat', 'uglify', 'cssmin', 'usemin']);
+
+  // registrando tasks
+  grunt.registerTask('default', ['dist', 'minifica']);
+
+  // carregando tasks
+  grunt.loadNpmTasks('grunt-contrib-copy'); 
+  grunt.loadNpmTasks('grunt-contrib-clean');
+  grunt.loadNpmTasks('grunt-contrib-concat');
+  grunt.loadNpmTasks('grunt-contrib-uglify');
+  grunt.loadNpmTasks('grunt-contrib-cssmin');
+  grunt.loadNpmTasks('grunt-usemin'); 
+}
+```
