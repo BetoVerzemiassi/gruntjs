@@ -474,3 +474,28 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-usemin'); 
 }
 ```
+
+# Otimizando imagens com Grunt
+
+* O Grunt também permite automatizar uma tarefa como essa através do **grunt-contrib-imagemin**. Sua instalação é como qualquer plugin do Grunt, logo, como qualquer outro módulo do Node.js:
+
+> npm install grunt-contrib-imagemin --save-dev
+
+* Como qualquer plugin do Grunt ele precisa ser carregado no Gruntfile.js:
+
+```
+grunt.loadNpmTasks('grunt-contrib-imagemin');
+```
+
+* Por fim, resta apenas configurar a task também no Gruntfile.js:
+
+```
+imagemin: {
+   public: {
+     expand: true,
+     cwd: 'dist/img',
+     src: '**/*.{png,jpg,gif}',
+     dest: 'dist/img'
+   }
+}
+```
