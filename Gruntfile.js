@@ -101,11 +101,27 @@ module.exports = function(grunt){
            js: {
                src: ['public/js/**/*.js']
            }
+       },
+
+       /*Configuração task browsersync*/
+       browserSync: {
+           public: {
+               bsFiles: {                  
+                   src: ['public/**/*']
+               },
+               options: {
+                   watchTask: true,
+                   server: {
+                       baseDir: "public"
+                   }
+               }
+           }
        }
 
     });
 
-    /*Registrand as tasks*/    
+    /*Registrand as tasks*/  
+    grunt.registerTask('server', 'browserSync','watch');  
     grunt.registerTask('minifica', ['useminPrepare','concat','uglify','cssmin','rev','usemin','imagemin']);
     grunt.registerTask('dist', ['clean','copy']);
     grunt.registerTask('default', ['dist','minifica']);
@@ -123,5 +139,6 @@ module.exports = function(grunt){
     grunt.loadNpmTasks('grunt-contrib-coffee');
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-contrib-jshint');
+    grunt.loadNpmTasks('grunt-browser-sync');
     
 }

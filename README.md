@@ -996,3 +996,70 @@ Done, without errors.
 ```
 
 * Repare que ele não analisa apenas o arquivo que modificamos, mas todos os arquivos da pasta, o que não é ruim, uma vez que outros arquivos podem ter sido adicionados no projeto.
+
+# Livereloading e sincronização com Grunt
+
+* O Grunt possui o plugin grunt-browser-sync que realiza o livereloading (atualização automática da página) toda vez que algum arquivo de nosso projeto mudar. Você pode até definir quais arquivos dispararão esse processo, mas na maioria das vezes você quererá que sejam todos. Além do livereloading, ele ainda sincroniza ações feitas localmente com seu browser preferido em todos os dispositivos que apontarem para a mesma página.
+
+* instalamos o plugin através do npm:
+
+> npm install grunt-browser-sync --save-dev
+
+* E como todo plugin do Grunt, você precisa registrá-lo em seu **Gruntfile.js:**
+
+```
+grunt.loadNpmTasks('grunt-browser-sync');
+```
+
+# Configurando a task
+
+* O plugin do Grunt disponibiliza a task browserSync. Nela criaremos o target public com a propriedade bsFiles. É nessa propriedade que indicamos quais arquivos serão monitorados, em nosso caso, todos dentro da pasta public:
+
+```
+browserSync: {
+      public: {
+          bsFiles: {
+            src : ['public/**/*']
+          }
+      }
+}
+```
+
+* Podemos rodar a task no terminal:
+
+```
+grunt browserSync
+```
+
+* A primeira coisa que você reparará é que seu terminal fica travado, mas não se preocupe. Isso acontece porque o Grunt dispara um processo na porta 3001 para monitorar seus arquivos. Caso você precise executar outra tarefa do Grunt precisará abrir outro terminal.
+
+* Outro ponto é a mensagem exibida no terminal:
+
+```
+BS] Copy the following snippet into your website, just before the closing </body> tag
+
+<script type='text/javascript'>//<![CDATA[
+;document.write("<script defer src='//HOST:3000/socket.io/socket.io.js'><\/script><script defer src='//HOST:3001/client/browser-sync-client.0.9.1.js'><\/script>".replace(/HOST/g, location.hostname));
+//]]></script>
+```
+
+* É por isso que no lugar de abrirmos o arquivo diretamente do sistema de arquivos, podemos tornar esse processo acessível pelo browser, como se fosse um pequeno servidor web. Fazendo isso, o server, antes de devolver a página solicitada, terá uma chance de injectar o script de livereload para nós, para depois então enviá-la para o navegador.
+
+* Para habilitar esse pequeno servidor basta adicionarmos o target options.
+
+```
+browserSync: {
+      public: {
+          bsFiles: {
+            src : ['public/**/*']
+          }, 
+         options: {
+            server: {
+                baseDir: "public"
+            }
+         }
+      }
+}
+```
+
+* Repare que em options indicamos através da propriedade server o **baseDir** da sua aplicação. Encare-o como a raíz do seu projeto quando a URL **http://localhost:3002/** for acessada.
