@@ -914,3 +914,85 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-watch');
 }
 ```
+
+# O plugin de linting
+
+* Utilizaremos o plugin grunt-contrib-jshint para realizar o linting de nossos arquivos modificados.
+
+* Baixando a task:
+
+> npm install grunt-contrib-jshint --save-dev
+
+* Registrando a task:
+
+```
+grunt.loadNpmTasks('grunt-contrib-jshint');
+```
+
+* O plugin disponibiliza a task **jshint.** Vamos configurá-la:
+
+```
+jshint: {
+   js: {
+      src: ['public/js/**/*.js']
+    }
+}
+```
+
+* Já podemos testar na linha de comando:
+
+```
+$ grunt jshint
+Running "jshint:js" (jshint) task
+
+   public/js/index.js
+     14 |    }
+              ^ Missing semicolon.
+
+>> 1 error in 2 files
+Warning: Task "jshint:js" failed. Use --force to continue.
+```
+
+* Como pode haver um erro em nosso código se ele funciona? A omissão do ponto e vírgula após a function declaration foi corrigida pelo ASI (automatic semicolon insertion) do JavaScript, mas nem sempre ele é esperto o suficiente. O Jshint não perdoa e pede para que o desenvolvedor explicitamente adicione o ponto e vírgula.
+
+* Faça um teste: coloque o ponto e vírgula e rode a task novamente:
+
+```
+$ grunt jshint
+Running "jshint:js" (jshint) task
+>> 2 files lint free.
+
+Done, without errors.
+```
+
+* Que tal agora rodarmos nossa task quando o arquivo for alterado? Vamos adicionar mais uma subtask para task watch:
+
+```
+watch: {
+  /*  subtask anteriores */ 
+
+   js: {
+      options: {
+         event: ['changed']
+      },
+      files: 'public/js/**/*.js',
+      tasks: 'jshint:js'
+   }
+
+}
+```
+
+* Agora podemos rodar a task watch que rodará infinitamente no terminal e logo em seguida consertar nosso arquivo. Nosso arquivo deverá passar no teste:
+
+```
+$ grunt watch
+Running "watch" task
+Waiting...
+>> File "public/js/index.js" changed.
+Running "jshint:js" (jshint) task
+>> 2 files lint free.
+
+Done, without errors.
+```
+
+* Repare que ele não analisa apenas o arquivo que modificamos, mas todos os arquivos da pasta, o que não é ruim, uma vez que outros arquivos podem ter sido adicionados no projeto.
