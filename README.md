@@ -1063,3 +1063,21 @@ browserSync: {
 ```
 
 * Repare que em options indicamos através da propriedade server o **baseDir** da sua aplicação. Encare-o como a raíz do seu projeto quando a URL **http://localhost:3002/** for acessada.
+
+* Queremos que ele também recarregue as páginas quando nossos arquivos .coffee e .less forem compilados. Para isso, precisamos integrar o browserSync com nossa task watch adicionando a propriedade **watchTask : true** em options:
+
+```
+browserSync: {
+      public: {
+          bsFiles: {
+            src : ['public/**/*']
+          }, 
+         options: {
+            watchTask: true,
+            server: {
+                baseDir: "public"
+            }
+         }
+      }
+}
+```
