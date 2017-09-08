@@ -666,5 +666,251 @@ module.exports = function(grunt) {
 
 * Se você rodar novamente o script, os arquivo continuaram com o mesmo nome e só mudarão caso o arquivo original tenha sido modificado.
 
+# Grunt e tasks de pré-processamento
 
+* O Grunt possui o plugin **grunt-contrib-coffee** para compilar **CoffeeScript**, inclusive o **grunt-contrib-less** para compilar **LESS**. O problema é que eles devem ser executados quando novos arquivos forem criados e quando os já existentes forem modificados. Para resolver este último problema, o Grunt possui o plugin **grunt-contrib-watch.**
 
+* Primeiro, vamos executar o corriqueiro comando npm para instalar os dois pré-processadores que utilizaremos:
+
+> npm install grunt-contrib-coffee grunt-contrib-less  --save-dev
+
+* Inclusive registrá-los em nosso Gruntfile.js:
+
+```
+grunt.loadNpmTasks('grunt-contrib-coffee');
+grunt.loadNpmTasks('grunt-contrib-less');
+```
+
+* Agora só nos resta configurar as tasks.
+
+# As tasks coffee e less
+
+* A configuração das taks coffee e less são praticamente idênticas. Para cada uma delas, adicionaremos o target **'compilar':**
+
+```
+coffee: {
+   compilar: { 
+      expand: true,
+      cwd: 'public/coffee', 
+      src: ['**/*.coffee'],
+      dest: 'public/js'
+   }
+} ,
+
+less: {
+   compilar: {
+      expand: true,
+      cwd: 'public/less',
+      src: ['**/*.less'],
+      dest: 'public/css'
+   }
+}
+```
+
+* Repare no código anterior que os arquivos **.coffee e .less** ficarão em suas respectivas pastas. A ideia é que cada arquivo arquivo **.coffee e .less** compilado vá para a pasta **js e css** respectivamente.
+
+* O problema é que no processo de compilação não muda a extensão do arquivo. Para isso, adicionamos a propriedade **ext** na configuração do target. Ela mudará a extensão do arquivo copiado para o valor que definimos na propriedade:
+
+```
+coffee: {
+   compilar: { 
+      expand: true,
+      cwd: 'public/coffee', 
+      src: ['**/*.coffee'],
+      dest: 'public/js', 
+      ext: '.js'
+   }
+} ,
+
+less: {
+   compilar: {
+      expand: true,
+      cwd: 'public/less',
+      src: ['**/*.less'],
+      dest: 'public/css', 
+      ext: '.css'
+   }
+}
+```
+# Automatizando com a task watch
+
+* Para termos a tarefa watch disponível, precisamos instalar o plugin **grunt-contrib-watch** através do npm:
+
+> npm install grunt-contrib-watch --save-dev
+
+* E também registrá-la em nosso **Gruntfile.js:**
+
+```
+grunt.loadNpmTasks('grunt-contrib-watch');
+```
+
+* A configuração da task é feita da seguinte forma: para a task watch criaremos dois targets. Um responsável em observar arquivos **.coffee** e outro arquivos **.less:**
+
+```
+watch: {
+
+   coffee: {
+      files: 'public/coffee/**/*.coffee',
+      tasks: 'coffee:compilar'
+   },
+
+   less: {
+       files: 'public/less/**/*.less', 
+       tasks: 'less:compilar'
+   }
+}
+```
+
+* Toda vez que um arquivo **.coffee ou .less** for **incluído (added), alterado (changed) ou deletado (deleted)** as tasks **watch:coffee e watch:less** chamarão as tasks definidas na propriedade task. Essas tasks são as que compilarão nossos arquivos.
+
+* Repare que elas compilarão todos os arquivos das pastas **coffee e less** respectivamente. Isso não é algo ruim, já que arquivos **.less** podem depender de outros, a mesma coisa com nossos arquivos **.coffee.**
+
+* Está quase pronto! Quase? Sim, porque não nos interessa executar as tarefas para arquivos deletados. Podemos sair do padrão **'all'** e indicar que as tarefas devem escutar apenas os eventos **'added' e 'changed'** deixando de fora o evento **'deleted'**. Fazemos adicionando a propriedade **options:**
+
+```
+watch: {
+
+   coffee: {
+      options: {
+           event: ['added', 'changed']
+       },
+      files: 'public/coffee/**/*.coffee',
+      tasks: 'coffee:compilar'
+   },
+
+   less: {
+       options: {
+          event: ['added', 'changed']
+       },
+       files: 'public/less/**/*.less', 
+       tasks: 'less:compilar'
+   }
+}
+```
+
+* Diferente do que estamos acostumados, rodarmos a task watch diretamente sem qualificar seus targets.
+
+```
+$ grunt watch
+Running "watch" task
+Waiting...
+```
+
+* Nosso script com todas as nossas tasks ficou assim:
+
+```
+module.exports = function(grunt) {
+
+   grunt.initConfig({
+      /* Copia os arquivos para o diretório 'dist' */
+      copy: {
+         public: {
+           expand: true,
+           cwd: 'public',
+           src: '**',
+           dest: 'dist'
+         }
+     },
+
+     clean: {
+          dist: {
+              src: 'dist'
+          }
+     },
+
+     useminPrepare: {
+       html: 'dist/**/*.html'
+     },
+
+     usemin: {
+       html: 'dist/**/*.html'
+     }, 
+
+     imagemin: {
+      public: {
+        expand: true,
+        cwd: 'dist/img',
+        src: '**/*.{png,jpg,gif}',
+        dest: 'dist/img'
+      }
+    }, 
+
+    rev: {
+      options: {
+        encoding: 'utf8',
+        algorithm: 'md5',
+        length: 8
+      },
+
+      imagens: {
+        src: ['dist/img/**/*.{png,jpg,gif}']
+      },
+      minificados: {
+        src: ['dist/js/**/*.min.js', 'dist/css/**/*.min.css']
+      }
+    }, 
+
+    coffee: {
+      compilar: { 
+        expand: true,
+        cwd: 'public/coffee', 
+        src: ['**/*.coffee'],
+        dest: 'public/js', 
+        ext: '.js'
+      }
+    },
+
+    less: {
+      compilar: {
+        expand: true,
+        cwd: 'public/less',
+        src: ['**/*.less'],
+        dest: 'public/css', 
+        ext: '.css'
+      }
+    }, 
+
+    watch: {
+      coffee: {
+        options: {
+          event: ['added', 'changed']
+        },
+        files: 'public/coffee/**/*.coffee',
+        tasks: 'coffee:compilar'
+      },
+
+      less: {
+        options: {
+          event: ['added', 'changed']
+        },
+        files: 'public/less/**/*.less', 
+        tasks: 'less:compilar'
+      }
+    }
+
+  });
+
+  //registrando task para minificação
+
+  grunt.registerTask('dist', ['clean', 'copy']);
+
+  grunt.registerTask('minifica', ['useminPrepare', 
+                                  'concat', 'uglify', 'cssmin', 'rev:imagens','rev:minificados', 'usemin', 'imagemin']);
+
+  // registrando tasks
+  grunt.registerTask('default', ['dist', 'minifica', ]);
+
+  // carregando tasks
+  grunt.loadNpmTasks('grunt-contrib-copy'); 
+  grunt.loadNpmTasks('grunt-contrib-clean');
+  grunt.loadNpmTasks('grunt-contrib-concat');
+  grunt.loadNpmTasks('grunt-contrib-uglify');
+  grunt.loadNpmTasks('grunt-contrib-cssmin');
+  grunt.loadNpmTasks('grunt-usemin'); 
+  grunt.loadNpmTasks('grunt-contrib-imagemin'); 
+  grunt.loadNpmTasks('grunt-rev'); 
+  grunt.loadNpmTasks('grunt-contrib-coffee');
+  grunt.loadNpmTasks('grunt-contrib-less');
+  grunt.loadNpmTasks('grunt-contrib-watch');
+}
+```
